@@ -17,7 +17,12 @@ The plugin depends on the following libraries:
 
 - jQuery 1.4 or higher (obviously)
 - jQuery-UI 1.8 or higher
+- jQuery Tmpl (Templates) Beta 1 (optional)
 - date.js
+
+Examples
+--------
+The first example shows a plain gantt chart. The second example allows easy customization by using jQuery templates for the sidebar groups and gantt blocks.
 
 
 Documentation

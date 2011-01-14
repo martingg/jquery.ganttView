@@ -36,7 +36,9 @@ behavior: {
   	if (args.length == 2 && typeof(args[0]) == "string") {
   		handleMethod.call(this, args[0], args[1]);
   	}
-  };
+  }; // end ganttView
+  
+  jQuery.fn.exists = function(){return jQuery(this).length>0;}
     
   function build(options) {
     	
@@ -144,20 +146,24 @@ behavior: {
         
     function addVtHeader(div, data, cellHeight) {
         var headerDiv = jQuery("<div>", { "class": "ganttview-vtheader" });
-        for (var i = 0; i < data.length; i++) {
-            var itemDiv = jQuery("<div>", { "class": "ganttview-vtheader-item", "id": data[i].id });
-            itemDiv.append(jQuery("<div>", {
-                "class": "ganttview-vtheader-item-name",
-                "css": { "height": (data[i].series.length * cellHeight) + "px" }
-            }).append(data[i].name));
-            var seriesDiv = jQuery("<div>", { "class": "ganttview-vtheader-series" });
-            for (var j = 0; j < data[i].series.length; j++) {
-                seriesDiv.append(jQuery("<div>", { "class": "ganttview-vtheader-series-name" })
-				        .append(data[i].series[j].name));
-            }
-            itemDiv.append(seriesDiv);
-            headerDiv.append(itemDiv);
-        }
+        if($("#sidebarItemTemplate").exists()) {
+          $("#sidebarItemTemplate").tmpl( opts.data, { cellHeight: cellHeight } ).appendTo(headerDiv);
+        } else {
+          for (var i = 0; i < data.length; i++) {
+              var itemDiv = jQuery("<div>", { "class": "ganttview-vtheader-item", "id": data[i].id });
+              itemDiv.append(jQuery("<div>", {
+                  "class": "ganttview-vtheader-item-name",
+                  "css": { "height": (data[i].series.length * cellHeight) + "px" }
+              }).append(data[i].name));
+              var seriesDiv = jQuery("<div>", { "class": "ganttview-vtheader-series" });
+              for (var j = 0; j < data[i].series.length; j++) {
+                  seriesDiv.append(jQuery("<div>", { "class": "ganttview-vtheader-series-name" })
+  				        .append(data[i].series[j].name));
+              }
+              itemDiv.append(seriesDiv);
+              headerDiv.append(itemDiv);
+          }
+        }        
         div.append(headerDiv);
     }
 
@@ -228,28 +234,39 @@ behavior: {
         var rowIdx = 0;
         for (var i = 0; i < data.length; i++) {
             for (var j = 0; j < data[i].series.length; j++) {
-                var series = data[i].series[j];
-                var size = DateUtils.daysBetween(series.start, series.end) + 1;
-			          var offset = DateUtils.daysBetween(start, series.start);
-			          var block = jQuery("<div>", {
-                    "class": "ganttview-block",
-                    "title": series.name + ", " + size + " days",
-                    "css": {
+                var seriesItem = data[i].series[j];
+                var size = DateUtils.daysBetween(seriesItem.start, seriesItem.end) + 1;
+			          var offset = DateUtils.daysBetween(start, seriesItem.start);
+			          var block = null;
+			          if($("#blockTemplate").exists()) {
+			            block = $("#blockTemplate")
+			              .tmpl( $.extend({}, seriesItem, { size: size, offset: offset }) )
+			              .css({
                         "width": ((size * cellWidth) - 9) + "px",
                         "margin-left": ((offset * cellWidth) + 3) + "px"
-                    }
-                });
-                addBlockData(block, data[i], series);
-                if (data[i].series[j].color) {
-                    block.css("background-color", data[i].series[j].color);
-                }
-                block.append(jQuery("<div>", { "class": "ganttview-block-text" }).text(size));
+                    })
+			          } else {
+			            block = jQuery("<div>", {
+                      "class": "ganttview-block",
+                      "title": seriesItem.name + ", " + size + " days",
+                      "css": {
+                          "width": ((size * cellWidth) - 9) + "px",
+                          "margin-left": ((offset * cellWidth) + 3) + "px"
+                      }
+                  });
+                  if (seriesItem.color) {
+                      block.css("background-color", seriesItem.color);
+                  }
+                  block.append(jQuery("<div>", { "class": "ganttview-block-text" }).text(size));
+			          }
+			          addBlockData(block, data[i], seriesItem);
                 jQuery(rows[rowIdx]).append(block);
                 rowIdx = rowIdx + 1;
             }
         }
     }
-        
+    
+    // TODO: replace with tmplItem()?    
     function addBlockData(block, data, series) {
     	// This allows custom attributes to be added to the series data objects
     	// and makes them available to the 'data' argument of click, resize, and drag handlers
@@ -342,12 +359,11 @@ behavior: {
 	} // end Behavior
 
   var ArrayUtils = {
-
-      contains: function (arr, obj) {
-          var has = false;
-          for (var i = 0; i < arr.length; i++) { if (arr[i] == obj) { has = true; } }
-          return has;
-      }
+    contains: function (arr, obj) {
+        var has = false;
+        for (var i = 0; i < arr.length; i++) { if (arr[i] == obj) { has = true; } }
+        return has;
+    }
   };
 
   var DateUtils = {

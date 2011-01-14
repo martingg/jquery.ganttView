@@ -64,10 +64,14 @@ div.ganttview-vtheader-item {
 }
 
 div.ganttview-vtheader-item-name {
-	width: 100px;
-	padding-left: 5px;
-	border-top: 1px solid #d0d0d0;
-	line-height: 16px;
+  width: 100px;
+  padding-left: 5px;
+  border-top: 1px solid #d0d0d0;
+  line-height: 16px;
+}
+div.ganttview-vtheader-item-name .foldable {
+  padding-left: 15px;
+  
 }
 
 div.ganttview-vtheader-series-name {
